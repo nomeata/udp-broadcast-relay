@@ -1,0 +1,42 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.TH UDP-BROADCAST-RELAY 8 "September 20, 2003"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+udp-broadcast-relay \- Relays UDP-Broadcasts to other local networks
+.SH SYNOPSIS
+.B udp-broadcast-relay
+[-f] [-d] id port eth0 eth1 ...
+.SH DESCRIPTION
+This manual page documents briefly the
+.B udp-broadcast-relay
+command.
+.PP
+.SH OPTIONS
+.TP
+.B \-f
+Fork program to background
+.TP
+.B \-d
+Enable debugging
+.TP
+.B id
+Number that has to be uniq in each network
+.TP
+.B port
+Port to forward.
+.TP
+.B eth0 eth1 ...
+Interfaces to listen for packets and to forward them to.
+.SH AUTHOR
+This manual page was written by Joachim Breitner <mail@joachim-breitner.de>.

@@ -12,14 +12,14 @@ to find each other to do so.
 
 INSTALL
 -------
-make ; cp udp_broadcast_relay /some/where
+make ; cp udp-broadcast-relay /some/where
 
 
 USAGE
 -----
-/some/where/udp_broadcast_relay udp-port
+/some/where/udp-broadcast-relay [-d] [-f] id udp-port eth0 eth1 ...
 
-udp_broadcast_relay must be run as boot to be able to create a raw
+udp-broadcast-relay must be run as boot to be able to create a raw
 socket (necessary) to send packets though they originated from the
 original sender)
 
@@ -31,7 +31,7 @@ COMPATIBILITY
 
 EXAMPLE
 -------
-/some/where/udp_broadcast_relay 2116  # forward Warcraft 3 broadcast packets
+/some/where/udp-broadcast-relay 6112  # forward Warcraft 3 broadcast packets
 
 
 BUGS/CRITICISM/PATCHES/ETC
@@ -41,6 +41,11 @@ e-mail: Joachim Breitner <mail@joachim-breitner.de>
 
 HISTORY
 ------
+0.3 	2003-09-28
+	Sending packets to ppp addresses too
+0.2	2003-09-18	
+	Flags for debugging and forking
+	Compilefixes, Makefile-Target "clean"
 0.1	2003-09-15
 	Initial rewrite of udp_broadcast_fw
 
