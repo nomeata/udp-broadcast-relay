@@ -1,0 +1,62 @@
+UDP Broadcast Packet Relay
+==============================
+
+This program listens for packets on a specified UDP broadcast.
+When a packet is received, it sends that packet to all
+specified interfaces but the one it came from as though it
+originated from the original sender.  
+
+The primary purpose of this is to allow games on machines on
+separated local networks (Ethernet, WLAN) that use udp broadcasts
+to find each other to do so.
+
+INSTALL
+-------
+make ; cp udp_broadcast_relay /some/where
+
+
+USAGE
+-----
+/some/where/udp_broadcast_relay udp-port
+
+udp_broadcast_relay must be run as boot to be able to create a raw
+socket (necessary) to send packets though they originated from the
+original sender)
+
+
+COMPATIBILITY
+-------------
+- I run debian woody with Linux 2.4.20, and here it works.
+
+
+EXAMPLE
+-------
+/some/where/udp_broadcast_relay 2116  # forward Warcraft 3 broadcast packets
+
+
+BUGS/CRITICISM/PATCHES/ETC
+--------------------------
+web:	http://www.joachim-breitner.de/udp_forward_relay/
+e-mail: Joachim Breitner <mail@joachim-breitner.de>
+
+HISTORY
+------
+0.1	2003-09-15
+	Initial rewrite of udp_broadcast_fw
+
+CREDITS
+-------
+This is based upon udp_broadcast_fw:
+Web: http://www.serverquery.com/udp_broadcast_fw/
+Email: Nathan O'Sullivan <nathan@ausgamers.com>
+
+HISTORY of udp_broadcast_fw
+-------
+0.1.1 - 19 Feb 02
+	Moved fork() code to just before main loop so that errors would appear
+0.1   - 18 Feb 02
+	Initial release
+
+LICENSE
+-------
+This code is made available under the GPL. Read COPYING for more info.
