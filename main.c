@@ -51,8 +51,29 @@ http://www.netfor2.com/ip.htm
 #include <stdio.h>
 #include <linux/if.h>
 #include <sys/ioctl.h>
+#include <stdlib.h>
+#include <unistd.h>
 
-main(int argc,char **argv)
+/* list of addresses and interface numbers on local machine */
+static struct {
+	struct sockaddr_in dstaddr;
+	int ifindex, raw_socket;
+} ifs[MAXIFS];
+
+/* Where we forge our packets */
+static u_char gram[4096]=
+{
+	0x45,	0x00,	0x00,	0x26,
+	0x12,	0x34,	0x00,	0x00,
+	0xFF,	0x11,	0,	0,
+	0,	0,	0,	0,
+	0,	0,	0,	0,
+	0,	0,	0,	0,
+	0x00,	0x12,	0x00,	0x00,
+	'1','2','3','4','5','6','7','8','9','0'
+};
+
+int main(int argc,char **argv)
 {
 	/* Debugging, forking, other settings */
 	int debug, forking;
@@ -69,13 +90,6 @@ main(int argc,char **argv)
 	struct ifreq reqbuf;
 	int maxifs;
 		
-	/* list of addresses and interface numbers on local machine */
-	// struct sockaddr_in addr[MAXIFS];
-	struct {
-		struct sockaddr_in dstaddr;
-		int ifindex;
-	} ifs[MAXIFS];
-	
 	/* Address broadcast packet was sent from */
 	struct sockaddr_in rcv_addr;
 	
@@ -87,22 +101,9 @@ main(int argc,char **argv)
 	/* various variables */
 	int x=1, len;
 	
-	/* Where we forge our packets */
-	u_char gram[4096]=
-	{
-		0x45,	0x00,	0x00,	0x26,
-		0x12,	0x34,	0x00,	0x00,
-		0xFF,	0x11,	0,	0,
-		0,	0,	0,	0,
-		0,	0,	0,	0,
-		0,	0,	0,	0,
-		0x00,	0x12,	0x00,	0x00,
-		'1','2','3','4','5','6','7','8','9','0'
-	};
-
 	struct cmsghdr *cmsg;
 	int *ttlptr=NULL;
-	int rcv_ifindex;
+	int rcv_ifindex = 0;
 
 	iov.iov_base = gram+ HEADER_LEN; 
 	iov.iov_len = 4006 - HEADER_LEN - 1;
@@ -127,14 +128,14 @@ main(int argc,char **argv)
 		exit(1);
 	};
 	
-	if (debug = (strcmp(argv[1],"-d") == 0))
+	if ((debug = (strcmp(argv[1],"-d") == 0)))
 	{
 		argc--;
 		argv++;
 		DPRINT ("Debugging Mode enabled\n");
 	};
 	
-	if (forking = (strcmp(argv[1],"-f") == 0))
+	if ((forking = (strcmp(argv[1],"-f") == 0)))
 	{
 		argc--;
 		argv++;
@@ -155,7 +156,7 @@ main(int argc,char **argv)
 		exit(1);
 	}
 	ttl = id+TTL_ID_OFFSET;
-	gram[8] = ttl; 
+	gram[8] = ttl;
 	/* The is is used to detect packets we just sent, and is stored in the "ttl" field,
 	 * which is not used with broadcast packets. Beware when using this with
 	 * non-broadcast-packets */
@@ -229,6 +230,36 @@ main(int argc,char **argv)
 			ifs[maxifs].ifindex,
 			inet_ntoa(ifs[maxifs].dstaddr.sin_addr) );
 
+		/* Set up a one raw socket per interface for sending our packets through */
+		if((ifs[maxifs].raw_socket = socket(AF_INET,SOCK_RAW,IPPROTO_RAW)) < 0)
+		{
+			perror("socket");
+			exit(1);
+		};
+		x=1;
+		if (setsockopt(ifs[maxifs].raw_socket,SOL_SOCKET,SO_BROADCAST,(char*)&x,sizeof(x))<0)
+		{
+			perror("setsockopt SO_BROADCAST");
+			exit(1);
+		};
+		/* bind socket to dedicated NIC (override routing table) */
+		if (setsockopt(ifs[maxifs].raw_socket,SOL_SOCKET,SO_BINDTODEVICE,argv[1],strlen(argv[1])+1)<0)
+		{
+			perror("setsockopt IP_HDRINCL");
+			exit(1);
+		};
+		/* Enable IP header stuff on the raw socket */
+		#ifdef IP_HDRINCL
+		x=1;
+		if (setsockopt(ifs[maxifs].raw_socket,IPPROTO_IP,IP_HDRINCL,(char*)&x,sizeof(x))<0)
+		{
+			perror("setsockopt IP_HDRINCL");
+			exit(1);
+		};
+		#else
+		#error IP_HDRINCL support is required
+		#endif
+
 		/* ... and count it */
 		maxifs++;
 	}
@@ -271,35 +302,9 @@ main(int argc,char **argv)
 		fprintf(stderr,"A program is already bound to the broadcast address for the given port\n");
 		exit(1);
 	}
-	
-	/* Set up a raw socket for sending our packets through */
-	if((fd=socket(AF_INET,SOCK_RAW,IPPROTO_RAW)) < 0)
-  	{
-  		perror("socket");
-  		exit(1);
-  	};
 
 	/* Set dest port to that was provided on command line */
 	*(u_short*)(gram+22)=(u_short)htons(port);
-	
-	x=1;
-	if (setsockopt(fd,SOL_SOCKET,SO_BROADCAST,(char*)&x,sizeof(x))<0)
-	{
-		perror("setsockopt SO_BROADCAST");
-		exit(1);
-  	};
-
-	/* Enable IP header stuff on the raw socket */
-	#ifdef IP_HDRINCL
-	x=1;
-	if (setsockopt(fd,IPPROTO_IP,IP_HDRINCL,(char*)&x,sizeof(x))<0)
-	{
-		perror("setsockopt IP_HDRINCL");
-		exit(1);
-  	};
-	#else
-	#error IP_HDRINCL support is required
-	#endif
 
  	/* Fork to background */
   if (! debug) {
@@ -319,7 +324,7 @@ main(int argc,char **argv)
 		len = recvmsg(rcv,&rcv_msg,0);
 		if (len <= 0) continue;	/* ignore broken packets */
 
-		/* Find the ttl and the reveicing interface */
+		/* Find the ttl and the receiving interface */
 		ttlptr=NULL;
 		if (rcv_msg.msg_controllen>0)
 		  for (cmsg=CMSG_FIRSTHDR(&rcv_msg);cmsg;cmsg=CMSG_NXTHDR(&rcv_msg,cmsg)) {
@@ -370,7 +375,7 @@ main(int argc,char **argv)
 				ifs[x].ifindex); /* interface number */
 				
 			/* Send the packet */
-			if (sendto(fd,
+			if (sendto(ifs[x].raw_socket,
 					&gram,
 					28+len,0,
 					(struct sockaddr*)&ifs[x].dstaddr,sizeof(struct sockaddr)
