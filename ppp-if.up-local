@@ -1,0 +1,40 @@
+In /etc/ppp/
+
+1) find end edit "ip-up.local" or create it if not exists (else edit "ip-up" if .local is not supported, but not recommended)
+
+Put next:
+
+
+--BEGIN--
+#!/bin/bash
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+export PATH
+if [ "$(pidof udp-broadcast-relay)" ] 
+then
+  killall udp-broadcast-relay
+  echo "VPN client joined. Resetting UDP Broadcast Relay on port 6112"
+fi
+udp-broadcast-relay -f 1 6112 eth0 $(for i in $( ifconfig | grep 'ppp' | awk '{print $1}' ); do printf "$i "; done)
+exit 0
+--END--
+
+where 6112 is a port we are listening for the game broadcasts.
+
+
+2) find end edit "ip-down.local" or create it if not exists (else edit "ip-down" if .local is not supported, but not recommended)
+
+
+--BEGIN--
+#!/bin/bash
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+export PATH
+
+
+if [ "$(pidof udp-broadcast-relay)" ] 
+then
+  killall udp-broadcast-relay
+  echo "VPN client left. Resetting UDP Broadcast Relay on port 6112"
+  udp-broadcast-relay -f 1 6112 eth0 $(for i in $( ifconfig | grep 'ppp' | awk '{print $1}' ); do printf "$i "; done)
+fi
+exit 0
+--END--
