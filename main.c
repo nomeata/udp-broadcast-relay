@@ -341,7 +341,7 @@ int main(int argc,char **argv)
 			exit(1);
 		}
 		if (*ttlptr == ttl) {
-			DPRINT ("Got local packge (TTL %i) on interface %i\n",*ttlptr,rcv_ifindex);
+			DPRINT ("Got local package (TTL %i) on interface %i\n",*ttlptr,rcv_ifindex);
 			continue;
 		}
 		
