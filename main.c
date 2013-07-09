@@ -92,6 +92,9 @@ int main(int argc,char **argv)
 		
 	/* Address broadcast packet was sent from */
 	struct sockaddr_in rcv_addr;
+
+        /* Spoofing source address of outgoing packets */
+        in_addr_t spoof_addr = 0;
 	
 	/* Incoming message read via rcvsmsg */
 	struct msghdr rcv_msg;
@@ -118,13 +121,16 @@ int main(int argc,char **argv)
 	/* parsing the args */
 	if(argc < 5)
 	{
-		fprintf(stderr,"usage: %s [-d] [-f] id udp-port dev1 dev2 ...\n",*argv);
-		fprintf(stderr,"This program listens for broadcast packets on the specified udp-port\n"
+		fprintf(stderr,"usage: %s [-d] [-f] [-s IP] id udp-port dev1 dev2 ...\n\n",*argv);
+		fprintf(stderr,"This program listens for broadcast  packets  on the  specified UDP port\n"
 			"and then forwards them to each other given interface.  Packets are sent\n"
-			"such that they appear to have come from the original broadcaster. When using\n"
-			"multiple instances for the same port on the same network, they must have the\n"
-			"a different id.\n"
-			"-d enables Debugging, -f forces forking to background\n");
+			"such that they appear to have come from the original broadcaster, resp.\n"
+			"from the spoofing IP in case -s is used.  When using multiple instances\n"
+			"for the same port on the same network, they must have a different id.\n\n"
+			"    -d      enables debugging\n"
+			"    -f      forces forking to background\n"
+			"    -s IP   sets the source IP of forwarded packets; otherwise the\n"
+			"            original sender's address is used\n\n");
 		exit(1);
 	};
 	
@@ -140,6 +146,21 @@ int main(int argc,char **argv)
 		argc--;
 		argv++;
 		DPRINT ("Forking Mode enabled (while debuggin? useless..)\n");
+	};
+
+	if (strcmp(argv[1],"-s") == 0)
+	{
+		/* INADDR_NONE is a valid IP address (-1 = 255.255.255.255),
+		 * so inet_pton() would be a better choice. But in this case it
+		 * does not matter. */
+		spoof_addr = inet_addr(argv[2]);
+		if (spoof_addr == INADDR_NONE) {
+			fprintf (stderr,"invalid IP address: %s\n", argv[2]);
+			exit(1);
+		}
+		DPRINT ("Outgoing source IP set to %s\n", argv[2]);
+		argc-=2;
+		argv+=2;
 	};
 
 	if ((id = atoi(argv[1])) == 0)
@@ -354,6 +375,8 @@ int main(int argc,char **argv)
 		DPRINT("From:\t\t%s:%d\n",inet_ntoa(rcv_addr.sin_addr),rcv_addr.sin_port);
 	
 		/* copy sender's details into our datagram as the source addr */	
+		if (spoof_addr)
+			rcv_addr.sin_addr.s_addr = spoof_addr;
 		bcopy(&(rcv_addr.sin_addr.s_addr),(gram+12),4);
 	  	*(u_short*)(gram+20)=(u_short)rcv_addr.sin_port;
 
