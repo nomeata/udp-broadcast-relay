@@ -14,6 +14,9 @@ It also works on ppp links, so you can log in from windows boxes (e.g.
 using pptp) and play LAN-based games together. Currently, you have to
 care about upcoming or downgoing interfaces yourself.
 
+Note that [it is possible to achieve this using `iptables` as
+well](https://odi.ch/weblog/posting.php?posting=731).
+
 INSTALL
 -------
 
