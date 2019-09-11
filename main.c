@@ -119,15 +119,15 @@ int main(int argc, char **argv) {
 	/* parsing the args */
 	if (argc < 5) {
 		fprintf(stderr, "usage: %s [-d] [-f] [-s IP] id udp-port dev1 dev2 ...\n\n", *argv);
-		fprintf(stderr, "This program listens for broadcast  packets  on the  specified UDP port\n"
-			"and then forwards them to each other given interface.  Packets are sent\n"
-			"such that they appear to have come from the original broadcaster, resp.\n"
-			"from the spoofing IP in case -s is used.  When using multiple instances\n"
-			"for the same port on the same network, they must have a different id.\n\n"
+		fprintf(stderr, "This program listens for broadcast packets on the specified UDP port\n"
+			"and then forwards them to each other given interface. Packets are sent\n"
+			"such that they appear to have come from the original broadcaster address or\n"
+			"from the spoofing IP in case -s is used. When using multiple instances\n"
+			"for the same port on the same network, they must have a different id (1-99).\n\n"
 			"    -d      enables debugging\n"
 			"    -f      forces forking to background\n"
 			"    -s IP   sets the source IP of forwarded packets; otherwise the\n"
-			"            original sender's address is used\n\n");
+			"            original senders address is used\n\n");
 		exit(1);
 	};
 	
