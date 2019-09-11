@@ -80,8 +80,8 @@ int main(int argc, char **argv) {
 	u_char id;
 	u_char ttl;
 
-	/* We use two sockets - one for receiving broadcast packets (type UDP), and
-	   one for spoofing them (type RAW) */
+	/* We use two sockets - one for receiving broadcast packets (type UDP),
+	   and one for spoofing them (type RAW) */
 	int fd,rcv;
 
 	/* Structure holds info on local interfaces */
@@ -103,10 +103,10 @@ int main(int argc, char **argv) {
 	int x = 1, len;
 
 	struct cmsghdr *cmsg;
-	int *ttlptr=NULL;
+	int *ttlptr = NULL;
 	int rcv_ifindex = 0;
 
-	iov.iov_base = gram+ HEADER_LEN; 
+	iov.iov_base = gram + HEADER_LEN;
 	iov.iov_len = 4006 - HEADER_LEN - 1;
 
 	rcv_msg.msg_name = &rcv_addr;
@@ -289,15 +289,17 @@ int main(int argc, char **argv) {
 	if (setsockopt(rcv, SOL_SOCKET, SO_BROADCAST, (char*) &x, sizeof(int)) < 0) {
 		perror("SO_BROADCAST on rcv");
 		exit(1);
-	};
+	}
+
 	if (setsockopt(rcv, SOL_IP, IP_RECVTTL, (char*) &x, sizeof(int)) < 0) {
 		perror("IP_RECVTTL on rcv");
 		exit(1);
-	};
+	}
+
 	if (setsockopt(rcv, SOL_IP, IP_PKTINFO, (char*) &x, sizeof(int)) < 0) {
 		perror("IP_PKTINFO on rcv");
 		exit(1);
-	};
+	}
 
 	/* We bind it to broadcast addr on the given port */
 	rcv_addr.sin_family = AF_INET;
@@ -311,7 +313,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* Set dest port to that was provided on command line */
-	*(u_short*)(gram+22)=(u_short)htons(port);
+	*(u_short*)(gram + 22) = (u_short) htons(port);
 
 	/* Fork to background */
 	if (!debug) {
