@@ -80,8 +80,8 @@ int main(int argc, char **argv) {
 	u_char id;
 	u_char ttl;
 
-	/* We use two sockets - one for receiving broadcast packets (type UDP), and
-	   one for spoofing them (type RAW) */
+	/* We use two sockets - one for receiving broadcast packets (type UDP),
+	   and one for spoofing them (type RAW) */
 	int fd,rcv;
 
 	/* Structure holds info on local interfaces */
@@ -103,10 +103,10 @@ int main(int argc, char **argv) {
 	int x = 1, len;
 
 	struct cmsghdr *cmsg;
-	int *ttlptr=NULL;
+	int *ttlptr = NULL;
 	int rcv_ifindex = 0;
 
-	iov.iov_base = gram+ HEADER_LEN; 
+	iov.iov_base = gram + HEADER_LEN;
 	iov.iov_len = 4006 - HEADER_LEN - 1;
 
 	rcv_msg.msg_name = &rcv_addr;
@@ -119,15 +119,15 @@ int main(int argc, char **argv) {
 	/* parsing the args */
 	if (argc < 5) {
 		fprintf(stderr, "usage: %s [-d] [-f] [-s IP] id udp-port dev1 dev2 ...\n\n", *argv);
-		fprintf(stderr, "This program listens for broadcast  packets  on the  specified UDP port\n"
-			"and then forwards them to each other given interface.  Packets are sent\n"
-			"such that they appear to have come from the original broadcaster, resp.\n"
-			"from the spoofing IP in case -s is used.  When using multiple instances\n"
-			"for the same port on the same network, they must have a different id.\n\n"
+		fprintf(stderr, "This program listens for broadcast packets on the specified UDP port\n"
+			"and then forwards them to each other given interface. Packets are sent\n"
+			"such that they appear to have come from the original broadcaster address or\n"
+			"from the spoofing IP in case -s is used. When using multiple instances\n"
+			"for the same port on the same network, they must have a different id (1-99).\n\n"
 			"    -d      enables debugging\n"
 			"    -f      forces forking to background\n"
 			"    -s IP   sets the source IP of forwarded packets; otherwise the\n"
-			"            original sender's address is used\n\n");
+			"            original senders address is used\n\n");
 		exit(1);
 	};
 	
@@ -289,15 +289,17 @@ int main(int argc, char **argv) {
 	if (setsockopt(rcv, SOL_SOCKET, SO_BROADCAST, (char*) &x, sizeof(int)) < 0) {
 		perror("SO_BROADCAST on rcv");
 		exit(1);
-	};
+	}
+
 	if (setsockopt(rcv, SOL_IP, IP_RECVTTL, (char*) &x, sizeof(int)) < 0) {
 		perror("IP_RECVTTL on rcv");
 		exit(1);
-	};
+	}
+
 	if (setsockopt(rcv, SOL_IP, IP_PKTINFO, (char*) &x, sizeof(int)) < 0) {
 		perror("IP_PKTINFO on rcv");
 		exit(1);
-	};
+	}
 
 	/* We bind it to broadcast addr on the given port */
 	rcv_addr.sin_family = AF_INET;
@@ -311,7 +313,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* Set dest port to that was provided on command line */
-	*(u_short*)(gram+22)=(u_short)htons(port);
+	*(u_short*)(gram + 22) = (u_short) htons(port);
 
 	/* Fork to background */
 	if (!debug) {
