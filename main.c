@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
 
 	/* We use two sockets - one for receiving broadcast packets (type UDP),
 	   and one for spoofing them (type RAW) */
-	int fd,rcv;
+	int fd, rcv;
 
 	/* Structure holds info on local interfaces */
 	struct ifreq reqbuf;
@@ -140,7 +140,7 @@ int main(int argc, char **argv) {
 	if ((forking = (strcmp(argv[1], "-f") == 0))) {
 		argc--;
 		argv++;
-		DPRINT("Forking Mode enabled (while debuggin? useless..)\n");
+		DPRINT("Forking Mode enabled (while debugging? useless..)\n");
 	};
 
 	if (strcmp(argv[1], "-s") == 0) {
@@ -149,23 +149,23 @@ int main(int argc, char **argv) {
 		 * does not matter. */
 		spoof_addr = inet_addr(argv[2]);
 		if (spoof_addr == INADDR_NONE) {
-			fprintf(stderr,"invalid IP address: %s\n", argv[2]);
+			fprintf(stderr, "invalid IP address: %s\n", argv[2]);
 			exit(1);
 		}
 		DPRINT("Outgoing source IP set to %s\n", argv[2]);
-		argc-=2;
-		argv+=2;
+		argc -= 2;
+		argv += 2;
 	};
 
 	if ((id = atoi(argv[1])) == 0) {
-		fprintf(stderr,"ID argument not valid\n");
+		fprintf(stderr, "ID argument not valid\n");
 		exit(1);
 	}
 	argc--;
 	argv++;
 
 	if (id < 1 || id > 99) {
-		fprintf(stderr,"ID argument %i not between 1 and 99\n",id);
+		fprintf(stderr, "ID argument %i not between 1 and 99\n",id);
 		exit(1);
 	}
 
@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
 	 * non-broadcast-packets */
 	
 	if ((port = atoi(argv[1])) == 0) {
-		fprintf(stderr,"Port argument not valid\n");
+		fprintf(stderr, "Port argument not valid\n");
 		exit(1);
 	}
 	argc--;
@@ -185,9 +185,9 @@ int main(int argc, char **argv) {
 	DPRINT("ID: %i (ttl: %i), Port %i\n", id, ttl, port);
 
 	/* We need to find out what IP's are bound to this host - set up a temporary socket to do so */
-	if ((fd = socket(AF_INET,SOCK_RAW,IPPROTO_RAW)) < 0) {
+	if ((fd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW)) < 0) {
 		perror("socket");
-		fprintf(stderr,"You must be root to create a raw socket\n");
+		fprintf(stderr, "You must be root to create a raw socket\n");
   		exit(1);
 	};
 
@@ -198,7 +198,7 @@ int main(int argc, char **argv) {
 		strncpy(reqbuf.ifr_name, argv[1], IFNAMSIZ);
 
 		/* Request index for this interface */
-		if (ioctl(fd,SIOCGIFINDEX, &reqbuf) < 0) {
+		if (ioctl(fd, SIOCGIFINDEX, &reqbuf) < 0) {
 			perror("ioctl(SIOCGIFINDEX)");
 			exit(1);
 		}
@@ -207,7 +207,7 @@ int main(int argc, char **argv) {
 		ifs[maxifs].ifindex = reqbuf.ifr_ifindex;
 		
 		/* Request flags for this interface */
-		if (ioctl(fd,SIOCGIFFLAGS, &reqbuf) < 0) {
+		if (ioctl(fd, SIOCGIFFLAGS, &reqbuf) < 0) {
 			perror("ioctl(SIOCGIFFLAGS)");
 			exit(1);
 		}
@@ -226,7 +226,7 @@ int main(int argc, char **argv) {
 		}
 
 		/* Request the broadcast/destination address for this interface */
-		if (ioctl(fd,ioctl_request, &reqbuf) < 0) {
+		if (ioctl(fd, ioctl_request, &reqbuf) < 0) {
 			perror("ioctl(SIOCGIFBRDADDR)");
 			exit(1);
 		}
@@ -253,7 +253,7 @@ int main(int argc, char **argv) {
 		};
 
 		/* bind socket to dedicated NIC (override routing table) */
-		if (setsockopt(ifs[maxifs].raw_socket, SOL_SOCKET, SO_BINDTODEVICE,argv[1], strlen(argv[1]) + 1) < 0) {
+		if (setsockopt(ifs[maxifs].raw_socket, SOL_SOCKET, SO_BINDTODEVICE, argv[1], strlen(argv[1]) + 1) < 0) {
 			perror("setsockopt IP_HDRINCL");
 			exit(1);
 		};
@@ -280,7 +280,7 @@ int main(int argc, char **argv) {
 	close(fd);
 
 	/* Create our broadcast receiving socket */
-	if ((rcv = socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP)) < 0) {
+	if ((rcv = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
 		perror("socket");
 		exit(1);
 	};
@@ -371,7 +371,7 @@ int main(int argc, char **argv) {
 		}
 
 		bcopy(&(rcv_addr.sin_addr.s_addr), (gram + 12), 4);
-		*(u_short*)(gram + 20) = (u_short)rcv_addr.sin_port;
+		*(u_short*)(gram + 20) = (u_short) rcv_addr.sin_port;
 
 		/* set the length of the packet */
 		*(u_short*)(gram + 24) = htons(8 + len);
