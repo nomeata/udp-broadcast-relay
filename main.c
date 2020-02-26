@@ -363,7 +363,7 @@ int main(int argc, char **argv) {
 		// DPRINT("Content:\t%s\n",gram+HEADER_LEN);
 		DPRINT("TTL:\t\t%i\n", *ttlptr);
 		DPRINT("Interface:\t%i\n", rcv_ifindex);
-		DPRINT("From:\t\t%s:%d\n", inet_ntoa(rcv_addr.sin_addr), rcv_addr.sin_port);
+		DPRINT("From:\t\t%s:%d\n", inet_ntoa(rcv_addr.sin_addr), ntohs(rcv_addr.sin_port));
 	
 		/* copy sender's details into our datagram as the source addr */	
 		if (spoof_addr) {
