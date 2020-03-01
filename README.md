@@ -20,7 +20,7 @@ well](https://odi.ch/weblog/posting.php?posting=731).
 INSTALL
 -------
 
-    make 
+    make
     cp udp-broadcast-relay /some/where
 
 USAGE
@@ -41,6 +41,17 @@ EXAMPLE
 -------
 
     /some/where/udp-broadcast-relay -f 1 6112 eth0 eth1  # forward Warcraft 3 broadcast packets
+
+SYSTEMD
+-------
+
+As UDP broadcast relay can only forward one port per instance of the program
+you can now have multiple instances using systemd. For every instance of UDP
+broadcast relay create a file in /etc/default/udp-broadcast-relayN where N
+represents the ID for UDP broadcast relay. You then can start the service using:
+
+  systemctl start udp-broadcast-relay@N
+
 
 CONTRIBUTORS
 -----------------
