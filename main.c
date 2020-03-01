@@ -7,9 +7,9 @@ udp-broadcast-relay
 Copyright (c) 2003 Joachim Breitner <mail@joachim-breitner.de>
 
 Based upon:
-udp_broadcast_fw ; Forwards UDP broadcast packets to all local 
+udp_broadcast_fw ; Forwards UDP broadcast packets to all local
 	interfaces as though they originated from sender
-	
+
 Copyright (C) 2002  Nathan O'Sullivan
 
 This program is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@ GNU General Public License for more details.
 
 Thanks:
 
-Arny <cs6171@scitsc.wlv.ac.uk> 
+Arny <cs6171@scitsc.wlv.ac.uk>
 - public domain UDP spoofing code
 http://www.netfor2.com/ip.htm
 - IP/UDP packet formatting info
@@ -38,7 +38,7 @@ http://www.netfor2.com/ip.htm
 #define UDPHEADER_LEN 8
 #define HEADER_LEN (IPHEADER_LEN + UDPHEADER_LEN)
 #define TTL_ID_OFFSET 64
- 
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in_systm.h>
@@ -130,13 +130,13 @@ int main(int argc, char **argv) {
 			"            original senders address is used\n\n");
 		exit(1);
 	};
-	
+
 	if ((debug = (strcmp(argv[1], "-d") == 0))) {
 		argc--;
 		argv++;
 		DPRINT("Debugging Mode enabled\n");
 	};
-	
+
 	if ((forking = (strcmp(argv[1], "-f") == 0))) {
 		argc--;
 		argv++;
@@ -174,7 +174,7 @@ int main(int argc, char **argv) {
 	/* The id is used to detect packets we just sent, and is stored in the "ttl" field,
 	 * which is not used with broadcast packets. Beware when using this with
 	 * non-broadcast-packets */
-	
+
 	if ((port = atoi(argv[1])) == 0) {
 		fprintf(stderr, "Port argument not valid\n");
 		exit(1);
@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
 
 	/* For each interface on the command line */
 	for (maxifs = 0; argc > 1; argc--, argv++) {
-		int ioctl_request; 
+		int ioctl_request;
 
 		strncpy(reqbuf.ifr_name, argv[1], IFNAMSIZ);
 
@@ -203,9 +203,9 @@ int main(int argc, char **argv) {
 			exit(1);
 		}
 
-		/* Save the index for later use */	
+		/* Save the index for later use */
 		ifs[maxifs].ifindex = reqbuf.ifr_ifindex;
-		
+
 		/* Request flags for this interface */
 		if (ioctl(fd, SIOCGIFFLAGS, &reqbuf) < 0) {
 			perror("ioctl(SIOCGIFFLAGS)");
@@ -275,7 +275,7 @@ int main(int argc, char **argv) {
 	/* well, we want the max index, actually */
 	maxifs--;
 	DPRINT("found %i interfaces total\n", maxifs + 1);
-	
+
 	/* Free our allocated buffer and close the socket */
 	close(fd);
 
@@ -364,8 +364,8 @@ int main(int argc, char **argv) {
 		DPRINT("TTL:\t\t%i\n", *ttlptr);
 		DPRINT("Interface:\t%i\n", rcv_ifindex);
 		DPRINT("From:\t\t%s:%d\n", inet_ntoa(rcv_addr.sin_addr), ntohs(rcv_addr.sin_port));
-	
-		/* copy sender's details into our datagram as the source addr */	
+
+		/* copy sender's details into our datagram as the source addr */
 		if (spoof_addr) {
 			rcv_addr.sin_addr.s_addr = spoof_addr;
 		}
@@ -391,7 +391,7 @@ int main(int argc, char **argv) {
 				inet_ntoa(ifs[x].dstaddr.sin_addr), /* dst ip */
 				ntohs(*(u_short*) (gram + 22)), /* dst port */
 				ifs[x].ifindex); /* interface number */
-				
+
 			/* Send the packet */
 			if (sendto(ifs[x].raw_socket, &gram, 28 + len, 0,
 					(struct sockaddr*)&ifs[x].dstaddr,
