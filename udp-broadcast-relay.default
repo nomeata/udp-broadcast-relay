@@ -1,0 +1,2 @@
+# Uncomment to start UDP bcast relay on the listed interfaces
+DAEMON_ARGS="1900 eth0 eth1 eth2"

@@ -1,0 +1,14 @@
+[Unit]
+Description=UDP broadcast relay
+After=network.target
+RequiresMountsFor=/run
+
+[Service]
+Type=simple
+NotifyAccess=main
+EnvironmentFile=-/etc/default/udp-broadcast-relay%I
+ExecStart=/usr/sbin/udp-broadcast-relay $DAEMON_ARGS
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
