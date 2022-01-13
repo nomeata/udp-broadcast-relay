@@ -1,5 +1,5 @@
 .\"                                      Hey, EMACS: -*- nroff -*-
-.TH UDP-BROADCAST-RELAY 8 "September 20, 2003"
+.TH UDP-BROADCAST-RELAY 8 "January 13, 2022"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -16,7 +16,7 @@
 udp-broadcast-relay \- Relays UDP-Broadcasts to other local networks
 .SH SYNOPSIS
 .B udp-broadcast-relay
-[-f] [-d] id port eth0 eth1 ...
+[-f] [-d] [-u USER] id port eth0 eth1 ...
 .SH DESCRIPTION
 This manual page documents briefly the
 .B udp-broadcast-relay
@@ -29,6 +29,9 @@ Fork program to background
 .TP
 .B \-d
 Enable debugging
+.TP
+.B \-u USER
+Drop privileges to user USER after initialization
 .TP
 .B id
 Number that has to be uniq in each network

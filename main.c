@@ -53,6 +53,7 @@ http://www.netfor2.com/ip.htm
 #include <sys/ioctl.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <pwd.h>
 
 /* list of addresses and interface numbers on local machine */
 static struct {
@@ -72,9 +73,26 @@ static u_char gram[4096] = {
 	'1','2','3','4','5','6','7','8','9','0'
 };
 
+static int get_uid_from_username(const char *username, uid_t *uid) {
+	struct passwd *pwd;
+
+	pwd = getpwnam(username);
+
+	if (pwd == NULL) {
+		return -ENOENT;
+	}
+
+	*uid = pwd->pw_uid;
+	return 0;
+}
+
 int main(int argc, char **argv) {
 	/* Debugging, forking, other settings */
 	int debug, forking;
+
+	/* Drop privileges.
+	 * -1 means do not drop */
+	uid_t drop_to_uid = -1;
 
 	u_int16_t port;
 	u_char id;
@@ -118,7 +136,7 @@ int main(int argc, char **argv) {
 
 	/* parsing the args */
 	if (argc < 5) {
-		fprintf(stderr, "usage: %s [-d] [-f] [-s IP] id udp-port dev1 dev2 ...\n\n", *argv);
+		fprintf(stderr, "usage: %s [-d] [-f] [-u USER] [-s IP] id udp-port dev1 dev2 ...\n\n", *argv);
 		fprintf(stderr, "This program listens for broadcast packets on the specified UDP port\n"
 			"and then forwards them to each other given interface. Packets are sent\n"
 			"such that they appear to have come from the original broadcaster address or\n"
@@ -126,6 +144,7 @@ int main(int argc, char **argv) {
 			"for the same port on the same network, they must have a different id (1-99).\n\n"
 			"    -d      enables debugging\n"
 			"    -f      forces forking to background\n"
+			"    -u USER Optionally drop privileges to a specific user after initializing\n"
 			"    -s IP   sets the source IP of forwarded packets; otherwise the\n"
 			"            original senders address is used\n\n");
 		exit(1);
@@ -142,6 +161,24 @@ int main(int argc, char **argv) {
 		argv++;
 		DPRINT("Forking Mode enabled (while debugging? useless..)\n");
 	};
+
+	if (strcmp(argv[1], "-u") == 0) {
+		if (argc < 3) {
+			fprintf(stderr, "Missing argument for -u\n");
+			exit(1);
+		}
+
+		DPRINT("Trying to lookup UID for user %s...\n", argv[2]);
+
+		if (get_uid_from_username(argv[2], &drop_to_uid) != 0) {
+			fprintf(stderr, "Failed to resolve user %s to a valid UID.\n", argv[2]);
+			exit(1);
+		}
+
+		DPRINT("Dropping privileges after opening sockets to uid %d\n", drop_to_uid);
+		argc -= 2;
+		argv += 2;
+	}
 
 	if (strcmp(argv[1], "-s") == 0) {
 		/* INADDR_NONE is a valid IP address (-1 = 255.255.255.255),
@@ -324,6 +361,14 @@ int main(int argc, char **argv) {
 		fclose(stdin);
 		fclose(stdout);
 		fclose(stderr);
+	}
+
+	if (drop_to_uid != -1) {
+		DPRINT("Dropping to UID %d\n", drop_to_uid);
+		if (0 != setreuid(drop_to_uid, drop_to_uid)) {
+			fprintf(stderr, "Failed to drop to UID %d\n", drop_to_uid);
+			exit(1);
+		}
 	}
 
 	DPRINT("Done Initializing\n\n");
